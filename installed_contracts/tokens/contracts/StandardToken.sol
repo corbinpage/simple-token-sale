@@ -9,10 +9,31 @@ Implements ERC 20 Token standard: https://github.com/ethereum/EIPs/issues/20
 pragma solidity ^0.4.8;
 
 import "./Token.sol";
+import "./Whitelist.sol";
 
 contract StandardToken is Token {
 
-    function transfer(address _to, uint256 _value) returns (bool success) {
+    modifier onlyWhitelist(address recipient) {
+        if (whitelist != Whitelist(0)){
+            require(whitelist.isWhitelisted(recipient));
+        }
+        _;
+    }
+
+    function setWhitelist(address whitelistAddress)
+        public
+        returns (bool success)
+    {
+        require(whitelist == Whitelist(0));
+        whitelist = Whitelist(whitelistAddress);
+        return true;
+    }
+
+    function transfer(address _to, uint256 _value) 
+        public
+        onlyWhitelist(_to)
+        returns (bool success) 
+    {
         //Default assumes totalSupply can't be over max (2^256 - 1).
         //If your token leaves out totalSupply and can issue more tokens as time goes on, you need to check if it doesn't wrap.
         //Replace the if with this one instead.
@@ -24,7 +45,11 @@ contract StandardToken is Token {
         return true;
     }
 
-    function transferFrom(address _from, address _to, uint256 _value) returns (bool success) {
+    function transferFrom(address _from, address _to, uint256 _value) 
+        public
+        onlyWhitelist(_to)
+        returns (bool success) 
+    {
         //same as above. Replace this line with the following if you want to protect against wrapping uints.
         //require(balances[_from] >= _value && allowed[_from][msg.sender] >= _value && balances[_to] + _value > balances[_to]);
         require(balances[_from] >= _value && allowed[_from][msg.sender] >= _value);
@@ -51,4 +76,5 @@ contract StandardToken is Token {
 
     mapping (address => uint256) balances;
     mapping (address => mapping (address => uint256)) allowed;
+    Whitelist public whitelist;
 }

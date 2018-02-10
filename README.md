@@ -34,3 +34,6 @@ Make sure all the tests pass before deploying. You probably won't have all of yo
 
 Having done all that you can `truffle migrate --network mainnet`. Save the contents of your build directory, you'll want to have all that data.
 
+## Task:
+
+Create a smart contract in its own file for whitelisting certain ethereum addresses. It should have methods for adding new addresses to the list, removing addresses from the list, and checking whether an address is present in the list. Also, alter StandardToken.sol to make sure the recipient account is in the whitelist before transferring funds. Write tests for one or more of the functions that you add. Submit a PR to the repo when done.

@@ -10,9 +10,59 @@ pragma solidity ^0.4.8;
 
 import "./Token.sol";
 
+
 contract StandardToken is Token {
 
-    function transfer(address _to, uint256 _value) returns (bool success) {
+    address public creator;
+    bool public paused;
+
+    modifier onlyCreator() {
+        require(msg.sender == creator);
+        _;
+    }
+
+    modifier onlyPaused() {
+        require(paused == true);
+        _;
+    }
+
+    modifier onlyLive() {
+        require(paused == false);
+        _;
+    }
+
+    function StandardToken() public {
+        creator = msg.sender;
+        paused = false;
+    }
+
+    function pause()
+        public
+        onlyCreator
+        onlyLive
+        returns (bool success)
+    {
+        paused = true;
+        Paused();
+        return true;
+    }
+
+    function resume()
+        public
+        onlyCreator
+        onlyPaused
+        returns (bool success)
+    {
+        paused = false;
+        Resumed();
+        return true;
+    }
+
+    function transfer(address _to, uint256 _value)
+        public
+        onlyLive
+        returns (bool success)
+    {
         //Default assumes totalSupply can't be over max (2^256 - 1).
         //If your token leaves out totalSupply and can issue more tokens as time goes on, you need to check if it doesn't wrap.
         //Replace the if with this one instead.
@@ -24,7 +74,11 @@ contract StandardToken is Token {
         return true;
     }
 
-    function transferFrom(address _from, address _to, uint256 _value) returns (bool success) {
+    function transferFrom(address _from, address _to, uint256 _value)
+        public
+        onlyLive
+        returns (bool success)
+    {
         //same as above. Replace this line with the following if you want to protect against wrapping uints.
         //require(balances[_from] >= _value && allowed[_from][msg.sender] >= _value && balances[_to] + _value > balances[_to]);
         require(balances[_from] >= _value && allowed[_from][msg.sender] >= _value);

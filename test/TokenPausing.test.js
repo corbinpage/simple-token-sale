@@ -65,7 +65,7 @@ contract('StandardToken', (accounts) => {
         assert(paused === true);
         return;
       }
-      assert.fail('Did not receive expected error');
+      throw new Error('Expected resume() to throw an error');
     });
 
     describe('when the token is already live', () => {
@@ -74,6 +74,44 @@ contract('StandardToken', (accounts) => {
         const paused = await initiallyLiveContract.paused();
         assert(paused === false);
       });
+    });
+  });
+
+  describe('transfer()', () => {
+    it('is possible when the token is not paused', async () => {
+      try {
+        await initiallyLiveContract.transfer(notCreator, 0, { from: creator });
+      } catch (err) {
+        throw err;
+      }
+    });
+
+    it('is not possible when the token is paused', async () => {
+      try {
+        await initiallyPausedContract.transfer(notCreator, 0, { from: creator });
+      } catch (err) {
+        return;
+      }
+      throw new Error('Expected transfer() to throw an error');
+    });
+  });
+
+  describe('transferFrom()', () => {
+    it('is possible when the token is not paused', async () => {
+      try {
+        await initiallyLiveContract.transferFrom(creator, notCreator, 0, { from: creator });
+      } catch (err) {
+        throw err;
+      }
+    });
+
+    it('is not possible when the token is paused', async () => {
+      try {
+        await initiallyPausedContract.transferFrom(creator, notCreator, 0, { from: creator });
+      } catch (err) {
+        return;
+      }
+      throw new Error('Expected transferFrom() to throw an error');
     });
   });
 });

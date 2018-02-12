@@ -23,7 +23,7 @@ contract('StandardToken', (accounts) => {
     });
   });
 
-  describe('Pausing token transfers', () => {
+  describe('Pausing a token', () => {
     it('is possible for creator', async () => {
       await initiallyLiveContract.pause({ from: creator });
       const paused = await initiallyLiveContract.paused();
@@ -40,9 +40,17 @@ contract('StandardToken', (accounts) => {
       }
       assert.fail('Did not receive expected error');
     });
+
+    describe('when the token is already paused', () => {
+      it('does nothing', async () => {
+        await initiallyPausedContract.pause({ from: creator });
+        const paused = await initiallyPausedContract.paused();
+        assert(paused === true);
+      });
+    });
   });
 
-  describe('Resuming token transfers', () => {
+  describe('Resuming a token', () => {
     it('is possible for creator', async () => {
       await initiallyPausedContract.resume({ from: creator });
       const paused = await initiallyPausedContract.paused();
@@ -58,6 +66,14 @@ contract('StandardToken', (accounts) => {
         return;
       }
       assert.fail('Did not receive expected error');
+    });
+
+    describe('when the token is already live', () => {
+      it('does nothing', async () => {
+        await initiallyLiveContract.resume({ from: creator });
+        const paused = await initiallyLiveContract.paused();
+        assert(paused === false);
+      });
     });
   });
 });

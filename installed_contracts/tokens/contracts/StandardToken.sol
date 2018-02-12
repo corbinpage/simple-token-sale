@@ -21,11 +21,6 @@ contract StandardToken is Token {
         _;
     }
 
-    modifier onlyPaused() {
-        require(paused == true);
-        _;
-    }
-
     modifier onlyLive() {
         require(paused == false);
         _;
@@ -39,22 +34,24 @@ contract StandardToken is Token {
     function pause()
         public
         onlyCreator
-        onlyLive
         returns (bool success)
     {
-        paused = true;
-        Paused();
+        if (paused == false) {
+            paused = true;
+            Paused();
+        }
         return true;
     }
 
     function resume()
         public
         onlyCreator
-        onlyPaused
         returns (bool success)
     {
-        paused = false;
-        Resumed();
+        if (paused == true) {
+            paused = false;
+            Resumed();
+        }
         return true;
     }
 

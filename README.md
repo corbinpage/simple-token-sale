@@ -34,3 +34,5 @@ Make sure all the tests pass before deploying. You probably won't have all of yo
 
 Having done all that you can `truffle migrate --network mainnet`. Save the contents of your build directory, you'll want to have all that data.
 
+# Task
+Using this repo, create a smart contract structure for pausing the token contract. It should have methods for pausing, un-pausing the contract and reporting the current state to anyone that queries it. Make sure tokens cannot be transferred while the contract is paused. Write appropriate tests for this new functionality.

@@ -9,51 +9,10 @@ Implements ERC 20 Token standard: https://github.com/ethereum/EIPs/issues/20
 pragma solidity ^0.4.8;
 
 import "./Token.sol";
+import "./Pausable.sol";
 
 
-contract StandardToken is Token {
-
-    address public creator;
-    bool public paused;
-
-    modifier onlyCreator() {
-        require(msg.sender == creator);
-        _;
-    }
-
-    modifier onlyLive() {
-        require(paused == false);
-        _;
-    }
-
-    function StandardToken() public {
-        creator = msg.sender;
-        paused = false;
-    }
-
-    function pause()
-        public
-        onlyCreator
-        returns (bool success)
-    {
-        if (paused == false) {
-            paused = true;
-            Paused();
-        }
-        return true;
-    }
-
-    function resume()
-        public
-        onlyCreator
-        returns (bool success)
-    {
-        if (paused == true) {
-            paused = false;
-            Resumed();
-        }
-        return true;
-    }
+contract StandardToken is Token, Pausable {
 
     function transfer(address _to, uint256 _value)
         public

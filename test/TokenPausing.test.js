@@ -2,93 +2,106 @@
 /* global artifacts assert contract */
 
 const StandardToken = artifacts.require('./StandardToken.sol');
+const Pausable = artifacts.require('./Pausable.sol');
 
-contract('StandardToken', (accounts) => {
-  const creator = accounts[0];
-  const notCreator = accounts[1];
-
-  let initiallyLiveContract;
-  let initiallyPausedContract;
+contract('Pausable', (accounts) => {
+  const owner = accounts[0];
+  const notOwner = accounts[1];
+  let contract;
 
   beforeEach(async () => {
-    initiallyLiveContract = await StandardToken.new({ from: creator });
-    initiallyPausedContract = await StandardToken.new({ from: creator });
-    await initiallyPausedContract.pause({ from: creator });
+    contract = await Pausable.new({ from: owner });
   });
 
   describe('Pause flag', () => {
     it('is initially false', async () => {
-      const paused = await initiallyLiveContract.paused();
-      assert(paused === false);
+      const paused = await contract.paused();
+      assert.isFalse(paused);
     });
   });
 
-  describe('Pausing a token', () => {
-    it('is possible for creator', async () => {
-      await initiallyLiveContract.pause({ from: creator });
-      const paused = await initiallyLiveContract.paused();
-      assert(paused === true);
+  describe('Pausing', () => {
+    it('is possible for owner', async () => {
+      await contract.pause({ from: owner });
+      const paused = await contract.paused();
+      assert.isTrue(paused);
     });
 
-    it('is not possible for non-creator', async () => {
+    it('is not possible for non-owner', async () => {
       try {
-        await initiallyLiveContract.pause({ from: notCreator });
+        await contract.pause({ from: notOwner });
       } catch (err) {
-        const paused = await initiallyLiveContract.paused();
-        assert(paused === false);
+        const paused = await contract.paused();
+        assert.isFalse(paused);
         return;
       }
-      assert.fail('Did not receive expected error');
+      throw new Error('Did not receive expected error');
     });
 
-    describe('when the token is already paused', () => {
-      it('does nothing', async () => {
-        await initiallyPausedContract.pause({ from: creator });
-        const paused = await initiallyPausedContract.paused();
-        assert(paused === true);
-      });
+    it('is not possible when already paused', async () => {
+      await contract.pause({ from: owner });
+      try {
+        await contract.pause({ from: owner });
+      } catch (err) {
+        const paused = await contract.paused();
+        assert.isTrue(paused);
+        return;
+      }
+      throw new Error('Did not receive expected error');
     });
   });
 
-  describe('Resuming a token', () => {
-    it('is possible for creator', async () => {
-      await initiallyPausedContract.resume({ from: creator });
-      const paused = await initiallyPausedContract.paused();
-      assert(paused === false);
+  describe('Resuming', () => {
+    it('is possible for owner', async () => {
+      await contract.pause({ from: owner });
+      await contract.resume({ from: owner });
+      const paused = await contract.paused();
+      assert.isFalse(paused);
     });
 
-    it('is not possible for non-creator', async () => {
+    it('is not possible for non-owner', async () => {
+      await contract.pause({ from: owner });
       try {
-        await initiallyPausedContract.resume({ from: notCreator });
+        await contract.resume({ from: notOwner });
       } catch (err) {
-        const paused = await initiallyPausedContract.paused();
-        assert(paused === true);
+        const paused = await contract.paused();
+        assert.isTrue(paused);
         return;
       }
-      throw new Error('Expected resume() to throw an error');
+      throw new Error('Did not receive expected error');
     });
 
-    describe('when the token is already live', () => {
-      it('does nothing', async () => {
-        await initiallyLiveContract.resume({ from: creator });
-        const paused = await initiallyLiveContract.paused();
-        assert(paused === false);
-      });
+    it('is not possible when already resumed', async () => {
+      try {
+        await contract.resume({ from: owner });
+      } catch (err) {
+        const paused = await contract.paused();
+        assert.isFalse(paused);
+        return;
+      }
+      throw new Error('Did not receive expected error');
     });
+  });
+});
+
+contract('StandardToken', (accounts) => {
+  const owner = accounts[0];
+  const notOwner = accounts[1];
+  let contract;
+
+  beforeEach(async () => {
+    contract = await StandardToken.new({ from: owner });
   });
 
   describe('transfer()', () => {
     it('is possible when the token is not paused', async () => {
-      try {
-        await initiallyLiveContract.transfer(notCreator, 0, { from: creator });
-      } catch (err) {
-        throw err;
-      }
+      await contract.transfer(notOwner, 0, { from: owner });
     });
 
     it('is not possible when the token is paused', async () => {
+      await contract.pause({ from: owner });
       try {
-        await initiallyPausedContract.transfer(notCreator, 0, { from: creator });
+        await contract.transfer(owner, 0, { from: notOwner });
       } catch (err) {
         return;
       }
@@ -98,16 +111,13 @@ contract('StandardToken', (accounts) => {
 
   describe('transferFrom()', () => {
     it('is possible when the token is not paused', async () => {
-      try {
-        await initiallyLiveContract.transferFrom(creator, notCreator, 0, { from: creator });
-      } catch (err) {
-        throw err;
-      }
+      await contract.transferFrom(owner, notOwner, 0, { from: owner });
     });
 
     it('is not possible when the token is paused', async () => {
+      await contract.pause({ from: owner });
       try {
-        await initiallyPausedContract.transferFrom(creator, notCreator, 0, { from: creator });
+        await contract.transferFrom(notOwner, owner, 0, { from: owner });
       } catch (err) {
         return;
       }

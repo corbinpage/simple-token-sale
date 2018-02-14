@@ -1,9 +1,11 @@
 /* global artifacts */
 
 const StandardToken = artifacts.require('../installed_contracts/tokens/contracts/StandardToken.sol');
+const Pausable = artifacts.require('../installed_contracts/tokens/contracts/Pausable.sol');
 
 module.exports = (deployer) => {
   deployer.deploy(StandardToken);
+  deployer.deploy(Pausable);
 };
 /* const Sale = artifacts.require('./Sale.sol');
 const fs = require('fs');

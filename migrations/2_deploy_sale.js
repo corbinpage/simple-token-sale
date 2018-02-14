@@ -1,6 +1,13 @@
 /* global artifacts */
 
-const Sale = artifacts.require('./Sale.sol');
+const StandardToken = artifacts.require('../installed_contracts/tokens/contracts/StandardToken.sol');
+const Pausable = artifacts.require('../installed_contracts/tokens/contracts/Pausable.sol');
+
+module.exports = (deployer) => {
+  deployer.deploy(StandardToken);
+  deployer.deploy(Pausable);
+};
+/* const Sale = artifacts.require('./Sale.sol');
 const fs = require('fs');
 const BN = require('bn.js');
 
@@ -121,3 +128,4 @@ module.exports = (deployer) => {
       fs.writeFileSync('logs/logs.json', JSON.stringify(logs, null, 2));
     });
 };
+*/
